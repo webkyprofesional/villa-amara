@@ -4,6 +4,27 @@ window.addEventListener('load', () => {
   setTimeout(() => loader.classList.add('done'), 500);
 });
 
+// ---------- Hero video autoplay fallback (iOS Low Power Mode / Data Saver etc.) ----------
+(() => {
+  const video = document.getElementById('heroVideo');
+  if (!video) return;
+
+  const tryPlay = () => {
+    const p = video.play();
+    if (p && typeof p.catch === 'function') p.catch(() => {});
+  };
+
+  tryPlay();
+  video.addEventListener('loadeddata', tryPlay);
+
+  const resumeOnInteraction = () => {
+    if (video.paused) tryPlay();
+  };
+  ['touchstart', 'click', 'scroll'].forEach(evt => {
+    window.addEventListener(evt, resumeOnInteraction, { once: true, passive: true });
+  });
+})();
+
 // ---------- Footer year ----------
 document.getElementById('year').textContent = new Date().getFullYear();
 
