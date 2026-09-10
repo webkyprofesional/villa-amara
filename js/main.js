@@ -7,21 +7,28 @@ window.addEventListener('load', () => {
 // ---------- Hero video autoplay fallback (iOS Low Power Mode / Data Saver etc.) ----------
 (() => {
   const video = document.getElementById('heroVideo');
-  if (!video) return;
+  const playBtn = document.getElementById('heroPlay');
+  if (!video || !playBtn) return;
+
+  const showButton = () => playBtn.classList.add('visible');
+  const hideButton = () => playBtn.classList.remove('visible');
 
   const tryPlay = () => {
     const p = video.play();
-    if (p && typeof p.catch === 'function') p.catch(() => {});
+    if (p && typeof p.catch === 'function') {
+      p.then(hideButton).catch(showButton);
+    } else if (!video.paused) {
+      hideButton();
+    }
   };
 
   tryPlay();
   video.addEventListener('loadeddata', tryPlay);
+  video.addEventListener('playing', hideButton);
 
-  const resumeOnInteraction = () => {
-    if (video.paused) tryPlay();
-  };
-  ['touchstart', 'click', 'scroll'].forEach(evt => {
-    window.addEventListener(evt, resumeOnInteraction, { once: true, passive: true });
+  playBtn.addEventListener('click', () => {
+    video.muted = true;
+    tryPlay();
   });
 })();
 
