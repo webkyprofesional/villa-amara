@@ -408,6 +408,9 @@ main { position: relative; z-index: 1; background: var(--cream); }
   color: #6b6558;
   border-top: 1px solid #e6e1d3;
 }
+.footer-credit {
+  opacity: 0.6;
+}
 
 /* ---------- Lightbox ---------- */
 .lightbox {
