@@ -3,16 +3,40 @@
   "heroTitle": "Villa Amara",
   "aboutText": "Villa Amara stojí na pomedzí hôr a mora — dom z kameňa a dreva, kde sa svetlo mení každou hodinou dňa. Priestranné izby, tiché terasy a výhľady, ktoré si zapamätáte dlho po odchode. Navrhnutá pre pár dní, na ktoré sa nezabúda.",
   "stats": [
-    { "num": "4", "label": "Spálne" },
-    { "num": "8", "label": "Hostí" },
-    { "num": "3", "label": "Kúpeľne" },
-    { "num": "180 m²", "label": "Obytná plocha" }
+    {
+      "num": "4",
+      "label": "Spálne"
+    },
+    {
+      "num": "8",
+      "label": "Hostí"
+    },
+    {
+      "num": "3",
+      "label": "Kúpeľne"
+    },
+    {
+      "num": "180 m²",
+      "label": "Obytná plocha"
+    }
   ],
   "gallery": [
-    { "image": "pexels-damaaa-28256945.jpg", "alt": "Obývacia izba s výhľadom do záhrady" },
-    { "image": "pexels-ahmetcotur-28054888.jpg", "alt": "Spálňa s výhľadom na more" },
-    { "image": "pexels-dada-_design-240566386-12277283.jpg", "alt": "Moderná spálňa" },
-    { "image": "pexels-ahmetcotur-20975730.jpg", "alt": "Kúpeľňa s vaňou pri kameňovej stene" }
+    {
+      "image": "pexels-damaaa-28256945.jpg",
+      "alt": "Obývacia izba s výhľadom do záhrady"
+    },
+    {
+      "image": "pexels-ahmetcotur-28054888.jpg",
+      "alt": "Spálňa s výhľadom na more"
+    },
+    {
+      "image": "pexels-dada-_design-240566386-12277283.jpg",
+      "alt": "Moderná spálňa"
+    },
+    {
+      "image": "pexels-ahmetcotur-20975730.jpg",
+      "alt": "Kúpeľňa s vaňou pri kameňovej stene"
+    }
   ],
   "amenities": [
     "Súkromný bazén",
