@@ -270,6 +270,11 @@ async function uploadPendingImages() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ filename: file.name, dataBase64: base64 }),
     });
+    if (res.status === 401) {
+      const err = new Error('SESSION_EXPIRED');
+      err.sessionExpired = true;
+      throw err;
+    }
     if (!res.ok) throw new Error('Nahrávanie obrázka zlyhalo');
     const data = await res.json();
     state.gallery[idx].image = data.path;
@@ -309,11 +314,21 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content: state }),
     });
+    if (res.status === 401) {
+      throw Object.assign(new Error('SESSION_EXPIRED'), { sessionExpired: true });
+    }
     if (!res.ok) throw new Error((await res.json()).error || 'Uloženie zlyhalo');
     saveStatus.textContent = 'Uložené. Zmeny sa na stránke prejavia do minúty.';
     saveStatus.className = 'status ok';
     render();
   } catch (err) {
+    if (err.sessionExpired) {
+      saveStatus.textContent = 'Prihlásenie vypršalo. Prihlás sa prosím znova a skús to znova.';
+      saveStatus.className = 'status err';
+      editorScreen.style.display = 'none';
+      loginScreen.style.display = 'flex';
+      return;
+    }
     saveStatus.textContent = err.message;
     saveStatus.className = 'status err';
   }
