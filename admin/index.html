@@ -1,11 +1,335 @@
 <!DOCTYPE html>
-<html>
+<html lang="sk">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Villa Amara — Administrácia</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Villa Amara — Administrácia</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1b1a17; --cream: #f6f3ec; --gold: #b98a4f; --border: #ddd6c4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: 'Jost', sans-serif; background: var(--cream); color: var(--ink);
+    min-height: 100vh;
+  }
+  .brand {
+    font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 500;
+  }
+  /* ---- login ---- */
+  #loginScreen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1.5rem;
+  }
+  #loginScreen h1 { font-size: 2.2rem; margin: 0; }
+  #loginForm { display: flex; flex-direction: column; gap: 0.9rem; width: min(90vw, 320px); }
+  input, textarea {
+    font-family: 'Jost', sans-serif; font-size: 0.95rem; padding: 0.7rem 0.9rem;
+    border: 1px solid var(--border); border-radius: 4px; background: #fff; color: var(--ink);
+  }
+  button {
+    font-family: 'Jost', sans-serif; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.8rem 1.4rem; border: none; border-radius: 4px; background: var(--ink); color: var(--cream);
+    cursor: pointer; transition: background 0.3s ease;
+  }
+  button:hover { background: var(--gold); }
+  button.secondary { background: transparent; color: var(--ink); border: 1px solid var(--border); }
+  .error { color: #b3392c; font-size: 0.85rem; min-height: 1.2em; }
+
+  /* ---- editor ---- */
+  #editorScreen { display: none; max-width: 820px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+  .topbar h1 { font-size: 1.6rem; margin: 0; }
+  fieldset { border: 1px solid var(--border); border-radius: 6px; padding: 1.2rem 1.4rem; margin-bottom: 1.5rem; }
+  legend { padding: 0 0.5rem; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); }
+  label { display: block; font-size: 0.8rem; color: #6b6558; margin: 0.8rem 0 0.3rem; }
+  label:first-child { margin-top: 0; }
+  input[type="text"], textarea { width: 100%; }
+  textarea { resize: vertical; }
+  .row { display: flex; gap: 1rem; }
+  .row > div { flex: 1; }
+  .list-item { border: 1px dashed var(--border); border-radius: 6px; padding: 0.9rem; margin-bottom: 0.8rem; }
+  .gallery-item-editor { display: flex; gap: 1rem; align-items: flex-start; }
+  .gallery-item-editor img { width: 96px; height: 72px; object-fit: cover; border-radius: 4px; background: #eee; flex-shrink: 0; }
+  .gallery-item-editor .fields { flex: 1; }
+  .save-bar {
+    position: sticky; bottom: 0; background: var(--cream); border-top: 1px solid var(--border);
+    padding: 1rem 0; display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;
+  }
+  .status { font-size: 0.85rem; }
+  .status.ok { color: #2f6b3a; }
+  .status.err { color: #b3392c; }
+</style>
 </head>
 <body>
-  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+
+<div id="loginScreen">
+  <h1 class="brand">Villa Amara</h1>
+  <form id="loginForm">
+    <input type="password" id="passwordInput" placeholder="Heslo" autocomplete="current-password" required>
+    <button type="submit">Prihlásiť sa</button>
+    <div class="error" id="loginError"></div>
+  </form>
+</div>
+
+<div id="editorScreen">
+  <div class="topbar">
+    <h1 class="brand">Villa Amara — Administrácia</h1>
+    <button class="secondary" id="logoutBtn">Odhlásiť sa</button>
+  </div>
+
+  <fieldset>
+    <legend>Úvod</legend>
+    <label>Podnadpis nad názvom</label>
+    <input type="text" id="heroEyebrow">
+    <label>Názov vily</label>
+    <input type="text" id="heroTitle">
+  </fieldset>
+
+  <fieldset>
+    <legend>O vile</legend>
+    <label>Text</label>
+    <textarea id="aboutText" rows="4"></textarea>
+    <label>Štatistiky</label>
+    <div id="statsList"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Galéria</legend>
+    <div id="galleryList"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Vybavenie</legend>
+    <div id="amenitiesList"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Citát</legend>
+    <label>Text (Enter = zalomenie riadku)</label>
+    <textarea id="quote" rows="2"></textarea>
+  </fieldset>
+
+  <fieldset>
+    <legend>Kontakt</legend>
+    <label>E-mail</label>
+    <input type="text" id="contactEmail">
+    <label>Telefón (zobrazený)</label>
+    <input type="text" id="contactPhone">
+    <label>Telefón (pre odkaz, bez medzier, napr. +385912345678)</label>
+    <input type="text" id="contactPhoneHref">
+    <label>Lokalita</label>
+    <input type="text" id="contactLocation">
+  </fieldset>
+
+  <div class="save-bar">
+    <span class="status" id="saveStatus"></span>
+    <button id="saveBtn">Uložiť zmeny</button>
+  </div>
+</div>
+
+<script>
+const loginScreen = document.getElementById('loginScreen');
+const editorScreen = document.getElementById('editorScreen');
+const loginForm = document.getElementById('loginForm');
+const loginError = document.getElementById('loginError');
+const saveStatus = document.getElementById('saveStatus');
+
+let state = null; // holds the current content object
+
+function showEditor() {
+  loginScreen.style.display = 'none';
+  editorScreen.style.display = 'block';
+  loadContent();
+}
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  loginError.textContent = '';
+  const password = document.getElementById('passwordInput').value;
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      loginError.textContent = data.error || 'Prihlásenie zlyhalo';
+      return;
+    }
+    showEditor();
+  } catch (err) {
+    loginError.textContent = 'Chyba siete, skús znova.';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await fetch('/api/logout', { method: 'POST' });
+  location.reload();
+});
+
+async function loadContent() {
+  const res = await fetch('/api/content');
+  if (res.status === 401) {
+    editorScreen.style.display = 'none';
+    loginScreen.style.display = 'flex';
+    return;
+  }
+  const data = await res.json();
+  state = data.content;
+  render();
+}
+
+function render() {
+  document.getElementById('heroEyebrow').value = state.heroEyebrow || '';
+  document.getElementById('heroTitle').value = state.heroTitle || '';
+  document.getElementById('aboutText').value = state.aboutText || '';
+  document.getElementById('quote').value = (state.quote || '').replace('\n', '\n');
+  document.getElementById('contactEmail').value = state.contact?.email || '';
+  document.getElementById('contactPhone').value = state.contact?.phone || '';
+  document.getElementById('contactPhoneHref').value = state.contact?.phoneHref || '';
+  document.getElementById('contactLocation').value = state.contact?.location || '';
+
+  const statsList = document.getElementById('statsList');
+  statsList.innerHTML = '';
+  (state.stats || []).forEach((stat, i) => {
+    const div = document.createElement('div');
+    div.className = 'list-item row';
+    div.innerHTML = `
+      <div><label>Hodnota</label><input type="text" data-stat="${i}" data-field="num" value="${escapeAttr(stat.num)}"></div>
+      <div><label>Popis</label><input type="text" data-stat="${i}" data-field="label" value="${escapeAttr(stat.label)}"></div>
+    `;
+    statsList.appendChild(div);
+  });
+
+  const galleryList = document.getElementById('galleryList');
+  galleryList.innerHTML = '';
+  (state.gallery || []).forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'list-item gallery-item-editor';
+    div.innerHTML = `
+      <img src="../${item.image}" data-preview="${i}">
+      <div class="fields">
+        <label>Popis obrázka</label>
+        <input type="text" data-gallery="${i}" data-field="alt" value="${escapeAttr(item.alt)}">
+        <label>Nahradiť fotku</label>
+        <input type="file" accept="image/*" data-gallery-file="${i}">
+      </div>
+    `;
+    galleryList.appendChild(div);
+  });
+
+  const amenitiesList = document.getElementById('amenitiesList');
+  amenitiesList.innerHTML = '';
+  (state.amenities || []).forEach((text, i) => {
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerHTML = `<label>Položka ${i + 1}</label><input type="text" data-amenity="${i}" value="${escapeAttr(text)}">`;
+    amenitiesList.appendChild(div);
+  });
+}
+
+function escapeAttr(str) {
+  return String(str || '').replace(/"/g, '&quot;');
+}
+
+function resizeImageFile(file, maxDim = 1920, quality = 0.85) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = () => { img.src = reader.result; };
+    reader.onerror = reject;
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) { height = Math.round(height * maxDim / width); width = maxDim; }
+        else { width = Math.round(width * maxDim / height); height = maxDim; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+      resolve(dataUrl.split(',')[1]);
+    };
+    img.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadPendingImages() {
+  const fileInputs = document.querySelectorAll('[data-gallery-file]');
+  for (const input of fileInputs) {
+    if (!input.files || !input.files[0]) continue;
+    const idx = Number(input.dataset.galleryFile);
+    const file = input.files[0];
+    const base64 = await resizeImageFile(file);
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: file.name, dataBase64: base64 }),
+    });
+    if (!res.ok) throw new Error('Nahrávanie obrázka zlyhalo');
+    const data = await res.json();
+    state.gallery[idx].image = data.path;
+  }
+}
+
+function collectFormIntoState() {
+  state.heroEyebrow = document.getElementById('heroEyebrow').value;
+  state.heroTitle = document.getElementById('heroTitle').value;
+  state.aboutText = document.getElementById('aboutText').value;
+  state.quote = document.getElementById('quote').value;
+  state.contact = {
+    email: document.getElementById('contactEmail').value,
+    phone: document.getElementById('contactPhone').value,
+    phoneHref: document.getElementById('contactPhoneHref').value,
+    location: document.getElementById('contactLocation').value,
+  };
+  document.querySelectorAll('[data-stat]').forEach(el => {
+    state.stats[Number(el.dataset.stat)][el.dataset.field] = el.value;
+  });
+  document.querySelectorAll('[data-gallery][data-field]').forEach(el => {
+    state.gallery[Number(el.dataset.gallery)][el.dataset.field] = el.value;
+  });
+  document.querySelectorAll('[data-amenity]').forEach(el => {
+    state.amenities[Number(el.dataset.amenity)] = el.value;
+  });
+}
+
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  saveStatus.textContent = 'Ukladám…';
+  saveStatus.className = 'status';
+  try {
+    collectFormIntoState();
+    await uploadPendingImages();
+    const res = await fetch('/api/content', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: state }),
+    });
+    if (!res.ok) throw new Error((await res.json()).error || 'Uloženie zlyhalo');
+    saveStatus.textContent = 'Uložené. Zmeny sa na stránke prejavia do minúty.';
+    saveStatus.className = 'status ok';
+    render();
+  } catch (err) {
+    saveStatus.textContent = err.message;
+    saveStatus.className = 'status err';
+  }
+});
+
+// Try loading directly in case a session cookie already exists.
+(async () => {
+  const res = await fetch('/api/content');
+  if (res.ok) {
+    const data = await res.json();
+    state = data.content;
+    loginScreen.style.display = 'none';
+    editorScreen.style.display = 'block';
+    render();
+  }
+})();
+</script>
 </body>
 </html>
